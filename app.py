@@ -3,13 +3,14 @@ from fpdf import FPDF
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from io import BytesIO
+from PIL import Image, ImageOps
 import os
 import re
 from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "toolify-secret-key-change-in-production")
-app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB upload limit
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB upload limit
 
 
 # -----------------------------
@@ -310,6 +311,68 @@ def excel_generator():
 
 
 # -----------------------------
+# IMAGE TO PDF
+# -----------------------------
+ALLOWED_IMAGE_EXT = {"jpg", "jpeg", "png", "webp", "bmp", "gif"}
+MAX_IMAGES = 15
+
+
+@app.route("/image-to-pdf", methods=["GET", "POST"])
+def image_to_pdf():
+    if request.method == "POST":
+        files = [f for f in request.files.getlist("images") if f and f.filename]
+
+        if not files:
+            flash("Please choose at least one image.", "danger")
+            return redirect(url_for("image_to_pdf"))
+        if len(files) > MAX_IMAGES:
+            flash(f"You can convert up to {MAX_IMAGES} images at a time.", "danger")
+            return redirect(url_for("image_to_pdf"))
+
+        pages = []
+        for f in files:
+            ext = f.filename.rsplit(".", 1)[-1].lower() if "." in f.filename else ""
+            if ext not in ALLOWED_IMAGE_EXT:
+                flash(f"'{f.filename}' is not a supported image (use JPG, PNG or WEBP).", "danger")
+                return redirect(url_for("image_to_pdf"))
+            try:
+                img = Image.open(f.stream)
+                img.draft("RGB", (2000, 2000))  # saves memory for big JPEGs
+                img = ImageOps.exif_transpose(img)  # fix sideways phone photos
+                img.thumbnail((2000, 2000))
+                if img.mode in ("RGBA", "LA", "P"):
+                    img = img.convert("RGBA")
+                    background = Image.new("RGB", img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[-1])
+                    img = background
+                else:
+                    img = img.convert("RGB")
+                pages.append(img)
+            except Exception:
+                flash(f"Could not read '{f.filename}'. Try another image.", "danger")
+                return redirect(url_for("image_to_pdf"))
+
+        buffer = BytesIO()
+        pages[0].save(
+            buffer,
+            "PDF",
+            save_all=True,
+            append_images=pages[1:],
+            resolution=100.0,
+        )
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="Toolify_Images.pdf",
+            mimetype="application/pdf",
+        )
+
+    return render_template("image_to_pdf.html", max_images=MAX_IMAGES)
+
+
+# -----------------------------
 # ABOUT / FUTURE TOOLS
 # -----------------------------
 @app.route("/about")
@@ -319,7 +382,7 @@ def about():
 
 @app.errorhandler(413)
 def too_large(e):
-    return "File too large. Maximum size is 16 MB.", 413
+    return "Files too large. Maximum total size is 25 MB.", 413
 
 
 if __name__ == "__main__":
