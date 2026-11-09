@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Image to PDF Converter (Free, No Signup){% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="form-section">
+                <h2 class="section-title"><i class="bi bi-images me-2"></i>Image to PDF</h2>
+                <p class="text-muted">
+                    Convert JPG, PNG or WEBP images into one PDF. Each image becomes one page,
+                    in the order you select them. Free, no signup.
+                </p>
+
+                <form method="POST" enctype="multipart/form-data" id="imgForm">
+                    <div class="mb-3">
+                        <label for="images">Choose images (up to {{ max_images }})</label>
+                        <input class="form-control" type="file" id="images" name="images"
+                               accept="image/*" multiple required>
+                        <div class="form-text">Tip: select images in the order you want the pages.</div>
+                    </div>
+
+                    <ul class="list-group mb-3 small" id="fileList"></ul>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                        <i class="bi bi-download me-1"></i> Convert &amp; Download PDF
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-4">
+                <h5 class="fw-bold">How to convert images to PDF</h5>
+                <ol class="text-muted small">
+                    <li>Tap "Choose images" and select your photos or scans.</li>
+                    <li>Tap "Convert &amp; Download PDF".</li>
+                    <li>Your PDF downloads instantly. Files are not stored on our server.</li>
+                </ol>
+
+                <h5 class="fw-bold mt-4">FAQ</h5>
+                <p class="small mb-1"><strong>Is it free?</strong></p>
+                <p class="text-muted small">Yes, completely free with no signup.</p>
+                <p class="small mb-1"><strong>Can I combine many images into one PDF?</strong></p>
+                <p class="text-muted small">Yes. Select up to {{ max_images }} images and they become one PDF.</p>
+                <p class="small mb-1"><strong>Are my images saved?</strong></p>
+                <p class="text-muted small">No. They are processed in memory and sent back to you.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const input = document.getElementById("images");
+    const list = document.getElementById("fileList");
+    input.addEventListener("change", () => {
+        list.innerHTML = "";
+        Array.from(input.files).forEach((f, i) => {
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between";
+            li.textContent = (i + 1) + ". " + f.name;
+            const size = document.createElement("span");
+            size.className = "text-muted";
+            size.textContent = (f.size / 1024 / 1024).toFixed(1) + " MB";
+            li.appendChild(size);
+            list.appendChild(li);
+        });
+    });
+    document.getElementById("imgForm").addEventListener("submit", () => {
+        const btn = document.getElementById("submitBtn");
+        btn.innerHTML = "Converting... please wait";
+        setTimeout(() => { btn.innerHTML = '<i class="bi bi-download me-1"></i> Convert &amp; Download PDF'; }, 8000);
+    });
+</script>
+{% endblock %}
