@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}About Toolify{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-section">
+                <h2 class="section-title mb-3">About Toolify</h2>
+                <p class="lead">
+                    Toolify is a free collection of simple online tools that help you create professional documents quickly — without signing up or installing software.
+                </p>
+
+                <h5 class="fw-bold mt-4">Current Tools</h5>
+                <ul>
+                    <li><strong>Resume Builder</strong> — Generate a clean PDF resume from a form</li>
+                    <li><strong>PDF Generator</strong> — Convert any text into a formatted PDF</li>
+                    <li><strong>Excel Generator</strong> — Create styled .xlsx spreadsheets instantly</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Coming Soon</h5>
+                <ul>
+                    <li>Invoice / Bill Generator</li>
+                    <li>Gas / Utility Bill style printer</li>
+                    <li>PDF Converter (PDF ↔ Word, Image to PDF, etc.)</li>
+                    <li>More resume templates</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Monetization & Future</h5>
+                <p>
+                    Toolify is currently completely free. In the future we may introduce:
+                </p>
+                <ul>
+                    <li>Optional premium templates & advanced features</li>
+                    <li>AdSense (non-intrusive)</li>
+                    <li>Freemium model (remove small watermark, more exports)</li>
+                </ul>
+
+                <h5 class="fw-bold mt-4">Tech Stack</h5>
+                <p class="mb-0">
+                    Built with Python (Flask), Bootstrap 5, fpdf2 and openpyxl.<br>
+                    Designed to be lightweight and easy to host on Render, Railway, or any Python hosting.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

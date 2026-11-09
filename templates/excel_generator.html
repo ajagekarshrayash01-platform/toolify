@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Excel Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h2 class="section-title"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Excel Generator</h2>
+                <p class="text-muted">Create a professional Excel (.xlsx) file with headers and data.</p>
+            </div>
+
+            <form method="POST" class="form-section">
+                <div class="mb-3">
+                    <label for="title">Sheet / File Name</label>
+                    <input type="text" class="form-control" id="title" name="title"
+                           placeholder="Sales Report" value="My Sheet">
+                </div>
+
+                <div class="mb-3">
+                    <label for="headers">Column Headers * <span class="text-muted fw-normal">(comma separated)</span></label>
+                    <input type="text" class="form-control" id="headers" name="headers" required
+                           placeholder="Name, Email, Phone, City, Amount">
+                    <div class="form-text">Example: Name, Age, Department, Salary</div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="data">Data Rows <span class="text-muted fw-normal">(one row per line, comma separated)</span></label>
+                    <textarea class="form-control" id="data" name="data" rows="10"
+                              placeholder="Rahul Sharma, rahul@email.com, 9876543210, Mumbai, 45000
+Priya Patel, priya@email.com, 9123456789, Delhi, 52000
+Amit Kumar, amit@email.com, 9988776655, Bangalore, 48000"></textarea>
+                    <div class="form-text">
+                        Each line = one row. Values separated by commas. Empty cells are allowed.
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Generate & Download Excel
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-4 p-3 bg-light rounded-3 small text-muted">
+                <strong>Features included:</strong>
+                <ul class="mb-0 mt-1">
+                    <li>Styled header row (dark blue)</li>
+                    <li>Auto-adjusted column widths</li>
+                    <li>Frozen header row</li>
+                    <li>Clean borders</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

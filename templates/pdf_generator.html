@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}PDF Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h2 class="section-title"><i class="bi bi-file-earmark-pdf me-2"></i>PDF Generator</h2>
+                <p class="text-muted">Create a clean PDF document from any text content.</p>
+            </div>
+
+            <form method="POST" class="form-section">
+                <div class="mb-3">
+                    <label for="title">Document Title *</label>
+                    <input type="text" class="form-control" id="title" name="title" required
+                           placeholder="My Report / Letter / Notes">
+                </div>
+
+                <div class="mb-3">
+                    <label for="author">Author (optional)</label>
+                    <input type="text" class="form-control" id="author" name="author"
+                           placeholder="Your Name">
+                </div>
+
+                <div class="mb-4">
+                    <label for="content">Content *</label>
+                    <textarea class="form-control" id="content" name="content" rows="12" required
+                              placeholder="Write or paste your content here...
+
+You can write multiple paragraphs.
+
+The PDF will keep your line breaks and format the text cleanly."></textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Generate & Download PDF
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-4 p-3 bg-light rounded-3 small text-muted">
+                <strong>Tip:</strong> This tool is great for notes, simple letters, reports, and study material.
+                For more advanced formatting (tables, images), more features will be added soon.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

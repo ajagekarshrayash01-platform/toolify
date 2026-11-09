@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Toolify — Free Online Tools{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold mb-3">Free Online Document Tools</h1>
+        <p class="lead mb-4 opacity-90">
+            Create professional resumes, PDFs, and Excel sheets in seconds.<br>
+            No signup. No limits on basic use. 100% free to start.
+        </p>
+        <a href="#tools" class="btn btn-light btn-lg px-4 fw-semibold">
+            Explore Tools <i class="bi bi-arrow-down-circle ms-1"></i>
+        </a>
+    </div>
+</section>
+
+<div class="container" id="tools">
+    <div class="row g-4 mb-5">
+        <!-- Resume Builder -->
+        <div class="col-md-4">
+            <div class="card tool-card">
+                <div class="card-body text-center">
+                    <div class="tool-icon bg-primary bg-opacity-10 text-primary mx-auto">
+                        <i class="bi bi-file-earmark-person"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Resume Builder</h5>
+                    <p class="card-text text-muted small">
+                        Fill a simple form and download a clean, professional PDF resume instantly.
+                    </p>
+                    <a href="{{ url_for('resume') }}" class="btn btn-primary mt-2">
+                        Build Resume <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Generator -->
+        <div class="col-md-4">
+            <div class="card tool-card">
+                <div class="card-body text-center">
+                    <div class="tool-icon bg-danger bg-opacity-10 text-danger mx-auto">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">PDF Generator</h5>
+                    <p class="card-text text-muted small">
+                        Turn any text into a well-formatted PDF document. Perfect for notes, letters & reports.
+                    </p>
+                    <a href="{{ url_for('pdf_generator') }}" class="btn btn-primary mt-2">
+                        Create PDF <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Excel Generator -->
+        <div class="col-md-4">
+            <div class="card tool-card">
+                <div class="card-body text-center">
+                    <div class="tool-icon bg-success bg-opacity-10 text-success mx-auto">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Excel Generator</h5>
+                    <p class="card-text text-muted small">
+                        Create professional .xlsx spreadsheets with headers and data in just a few clicks.
+                    </p>
+                    <a href="{{ url_for('excel_generator') }}" class="btn btn-primary mt-2">
+                        Create Excel <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coming Soon -->
+    <div class="text-center mb-5">
+        <h4 class="fw-bold text-secondary mb-3">Coming Soon</h4>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-receipt me-1"></i> Invoice / Bill Generator
+            </span>
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-fuel-pump me-1"></i> Gas Bill Printer
+            </span>
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i> PDF Converter
+            </span>
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-image me-1"></i> Image to PDF
+            </span>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <h3 class="text-center fw-bold mb-4 section-title">How it works</h3>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">1</div>
+            <h6 class="fw-bold">Choose a tool</h6>
+            <p class="text-muted small">Pick Resume, PDF or Excel from the dashboard.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">2</div>
+            <h6 class="fw-bold">Fill the form</h6>
+            <p class="text-muted small">Enter your details. No account needed.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">3</div>
+            <h6 class="fw-bold">Download instantly</h6>
+            <p class="text-muted small">Get a clean, professional file ready to use.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

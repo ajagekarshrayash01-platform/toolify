@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Resume Builder{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="mb-4">
+                <h2 class="section-title"><i class="bi bi-file-earmark-person me-2"></i>Resume Builder</h2>
+                <p class="text-muted">Fill in the details below and download a clean professional PDF resume.</p>
+            </div>
+
+            <form method="POST" class="form-section">
+                <!-- Personal Info -->
+                <h5 class="fw-bold mb-3 text-primary">Personal Information</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="name">Full Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="John Doe">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="john@example.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="phone">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="location">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="Mumbai, India">
+                    </div>
+                    <div class="col-12">
+                        <label for="linkedin">LinkedIn / Portfolio (optional)</label>
+                        <input type="text" class="form-control" id="linkedin" name="linkedin" placeholder="linkedin.com/in/johndoe">
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <h5 class="fw-bold mb-3 text-primary">Professional Summary</h5>
+                <div class="mb-4">
+                    <label for="summary">Short summary about yourself</label>
+                    <textarea class="form-control" id="summary" name="summary" rows="3"
+                        placeholder="Results-driven software engineer with 3+ years of experience in full-stack development..."></textarea>
+                </div>
+
+                <!-- Skills -->
+                <h5 class="fw-bold mb-3 text-primary">Skills</h5>
+                <div class="mb-4">
+                    <label for="skills">List your key skills (comma separated or free text)</label>
+                    <textarea class="form-control" id="skills" name="skills" rows="2"
+                        placeholder="Python, Flask, JavaScript, React, SQL, Git, Docker, AWS"></textarea>
+                </div>
+
+                <!-- Experience -->
+                <h5 class="fw-bold mb-3 text-primary">Work Experience</h5>
+                <div class="mb-4">
+                    <label for="experience">Describe your work experience</label>
+                    <textarea class="form-control" id="experience" name="experience" rows="5"
+                        placeholder="Software Engineer | ABC Tech | Jan 2022 – Present
+• Built and maintained REST APIs serving 50k+ users
+• Improved page load time by 40%
+
+Junior Developer | XYZ Solutions | Jun 2020 – Dec 2021
+• Developed internal tools using Python and Flask"></textarea>
+                    <div class="form-text">Use new lines for different jobs. Use • or - for bullet points.</div>
+                </div>
+
+                <!-- Education -->
+                <h5 class="fw-bold mb-3 text-primary">Education</h5>
+                <div class="mb-4">
+                    <label for="education">Education details</label>
+                    <textarea class="form-control" id="education" name="education" rows="3"
+                        placeholder="B.Tech in Computer Science | University of Mumbai | 2016 – 2020
+CGPA: 8.2/10"></textarea>
+                </div>
+
+                <!-- Projects -->
+                <h5 class="fw-bold mb-3 text-primary">Projects (optional)</h5>
+                <div class="mb-4">
+                    <label for="projects">Highlight key projects</label>
+                    <textarea class="form-control" id="projects" name="projects" rows="3"
+                        placeholder="Toolify – Free online tools platform
+• Built with Flask, Bootstrap
+• Features: Resume builder, PDF & Excel generators"></textarea>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-download me-2"></i>Generate & Download PDF Resume
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
