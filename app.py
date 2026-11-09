@@ -4,10 +4,74 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from io import BytesIO
 import os
+import re
 from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "toolify-secret-key-change-in-production")
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB upload limit
+
+
+# -----------------------------
+# HELPERS
+# -----------------------------
+# The built-in PDF fonts only support basic Latin characters.
+# Without this, text like bullets (•), quotes (“ ”) or ₹ would crash the PDF.
+REPLACEMENTS = {
+    "•": "-", "–": "-", "—": "-",
+    "‘": "'", "’": "'", "“": '"', "”": '"',
+    "…": "...", "₹": "Rs.", "\u00a0": " ", "\t": "    ",
+}
+
+
+def safe_text(text):
+    text = text or ""
+    for old, new in REPLACEMENTS.items():
+        text = text.replace(old, new)
+    return text.encode("latin-1", "replace").decode("latin-1")
+
+
+def safe_filename(name, default="file"):
+    cleaned = re.sub(r"[^A-Za-z0-9_-]", "", name.replace(" ", "_"))[:40]
+    return cleaned or default
+
+
+def pdf_to_buffer(pdf):
+    buffer = BytesIO(bytes(pdf.output()))
+    buffer.seek(0)
+    return buffer
+
+
+class ToolifyPDF(FPDF):
+    """PDF with a footer on every page."""
+
+    def __init__(self, footer_text="Generated with Toolify"):
+        super().__init__()
+        self.footer_text = safe_text(footer_text)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 10, self.footer_text, align="C")
+
+
+def parse_value(value):
+    """Turn '25' into a number, but keep phone numbers / codes as text."""
+    v = value.strip()
+    if not v or len(v) > 12:
+        return v
+    if v.startswith("0") and not v.startswith("0."):
+        return v
+    try:
+        return int(v)
+    except ValueError:
+        pass
+    try:
+        return float(v)
+    except ValueError:
+        return v
+
 
 # -----------------------------
 # HOME / DASHBOARD
@@ -15,6 +79,12 @@ app.secret_key = os.environ.get("SECRET_KEY", "toolify-secret-key-change-in-prod
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+# Used by uptime pingers (UptimeRobot) to keep the free server awake
+@app.route("/health")
+def health():
+    return "ok", 200
 
 
 # -----------------------------
@@ -41,23 +111,21 @@ def resume():
             return redirect(url_for("resume"))
 
         pdf = generate_resume_pdf(data)
-        buffer = BytesIO()
-        pdf.output(buffer)
-        buffer.seek(0)
-
-        filename = f"{data['name'].replace(' ', '_')}_Resume.pdf"
+        filename = f"{safe_filename(data['name'], 'My')}_Resume.pdf"
         return send_file(
-            buffer,
+            pdf_to_buffer(pdf),
             as_attachment=True,
             download_name=filename,
-            mimetype="application/pdf"
+            mimetype="application/pdf",
         )
 
     return render_template("resume.html")
 
 
 def generate_resume_pdf(data):
-    pdf = FPDF()
+    data = {k: safe_text(v) for k, v in data.items()}
+
+    pdf = ToolifyPDF("Generated with Toolify - Free online tools")
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
@@ -69,17 +137,11 @@ def generate_resume_pdf(data):
     # Contact info
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(80, 80, 80)
-    contact_parts = []
-    if data["email"]:
-        contact_parts.append(data["email"])
-    if data["phone"]:
-        contact_parts.append(data["phone"])
-    if data["location"]:
-        contact_parts.append(data["location"])
-    if data["linkedin"]:
-        contact_parts.append(data["linkedin"])
-    contact_line = "  |  ".join(contact_parts)
-    pdf.cell(0, 8, contact_line, ln=True, align="C")
+    contact_parts = [
+        p for p in (data["email"], data["phone"], data["location"], data["linkedin"]) if p
+    ]
+    if contact_parts:
+        pdf.multi_cell(0, 6, "  |  ".join(contact_parts), align="C")
     pdf.ln(4)
 
     # Horizontal line
@@ -103,36 +165,17 @@ def generate_resume_pdf(data):
         pdf.multi_cell(0, 5.5, text)
         pdf.ln(3)
 
-    # Summary
-    if data["summary"]:
-        section_title("Professional Summary")
-        body_text(data["summary"])
-
-    # Skills
-    if data["skills"]:
-        section_title("Skills")
-        body_text(data["skills"])
-
-    # Experience
-    if data["experience"]:
-        section_title("Work Experience")
-        body_text(data["experience"])
-
-    # Education
-    if data["education"]:
-        section_title("Education")
-        body_text(data["education"])
-
-    # Projects
-    if data["projects"]:
-        section_title("Projects")
-        body_text(data["projects"])
-
-    # Footer
-    pdf.set_y(-15)
-    pdf.set_font("Helvetica", "I", 8)
-    pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 10, "Generated with Toolify • Free online tools", align="C")
+    sections = [
+        ("Professional Summary", "summary"),
+        ("Skills", "skills"),
+        ("Work Experience", "experience"),
+        ("Education", "education"),
+        ("Projects", "projects"),
+    ]
+    for title, key in sections:
+        if data[key]:
+            section_title(title)
+            body_text(data[key])
 
     return pdf
 
@@ -143,7 +186,7 @@ def generate_resume_pdf(data):
 @app.route("/pdf", methods=["GET", "POST"])
 def pdf_generator():
     if request.method == "POST":
-        title = request.form.get("title", "Document").strip()
+        title = request.form.get("title", "").strip() or "Document"
         content = request.form.get("content", "").strip()
         author = request.form.get("author", "").strip()
 
@@ -151,20 +194,20 @@ def pdf_generator():
             flash("Content is required.", "danger")
             return redirect(url_for("pdf_generator"))
 
-        pdf = FPDF()
+        pdf = ToolifyPDF(f"Generated with Toolify - {datetime.now().strftime('%d %b %Y')}")
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
 
         # Title
         pdf.set_font("Helvetica", "B", 18)
         pdf.set_text_color(20, 40, 80)
-        pdf.cell(0, 12, title, ln=True, align="C")
+        pdf.multi_cell(0, 10, safe_text(title), align="C")
         pdf.ln(3)
 
         if author:
             pdf.set_font("Helvetica", "I", 10)
             pdf.set_text_color(100, 100, 100)
-            pdf.cell(0, 8, f"By {author}", ln=True, align="C")
+            pdf.cell(0, 8, safe_text(f"By {author}"), ln=True, align="C")
             pdf.ln(4)
 
         # Line
@@ -175,24 +218,13 @@ def pdf_generator():
         # Content
         pdf.set_font("Helvetica", "", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.multi_cell(0, 6.5, content)
+        pdf.multi_cell(0, 6.5, safe_text(content))
 
-        # Footer
-        pdf.set_y(-15)
-        pdf.set_font("Helvetica", "I", 8)
-        pdf.set_text_color(150, 150, 150)
-        pdf.cell(0, 10, f"Generated with Toolify • {datetime.now().strftime('%Y-%m-%d')}", align="C")
-
-        buffer = BytesIO()
-        pdf.output(buffer)
-        buffer.seek(0)
-
-        filename = f"{title.replace(' ', '_')[:40]}.pdf"
         return send_file(
-            buffer,
+            pdf_to_buffer(pdf),
             as_attachment=True,
-            download_name=filename,
-            mimetype="application/pdf"
+            download_name=f"{safe_filename(title, 'Document')}.pdf",
+            mimetype="application/pdf",
         )
 
     return render_template("pdf_generator.html")
@@ -204,7 +236,7 @@ def pdf_generator():
 @app.route("/excel", methods=["GET", "POST"])
 def excel_generator():
     if request.method == "POST":
-        title = request.form.get("title", "Sheet").strip() or "Sheet"
+        title = request.form.get("title", "").strip() or "Sheet"
         headers_raw = request.form.get("headers", "").strip()
         data_raw = request.form.get("data", "").strip()
 
@@ -215,17 +247,17 @@ def excel_generator():
         headers = [h.strip() for h in headers_raw.split(",") if h.strip()]
         rows = []
         if data_raw:
-            for line in data_raw.strip().split("\n"):
+            for line in data_raw.splitlines():
                 if line.strip():
                     cells = [c.strip() for c in line.split(",")]
                     # Pad or trim to match header length
                     while len(cells) < len(headers):
                         cells.append("")
-                    rows.append(cells[:len(headers)])
+                    rows.append(cells[: len(headers)])
 
         wb = Workbook()
         ws = wb.active
-        ws.title = title[:31]  # Excel sheet name limit
+        ws.title = re.sub(r"[\\/*?:\[\]]", "", title)[:31] or "Sheet"  # Excel name rules
 
         # Styles
         header_font = Font(bold=True, color="FFFFFF", size=11)
@@ -235,7 +267,7 @@ def excel_generator():
             left=Side(style="thin", color="CCCCCC"),
             right=Side(style="thin", color="CCCCCC"),
             top=Side(style="thin", color="CCCCCC"),
-            bottom=Side(style="thin", color="CCCCCC")
+            bottom=Side(style="thin", color="CCCCCC"),
         )
 
         # Write headers
@@ -246,24 +278,19 @@ def excel_generator():
             cell.alignment = header_align
             cell.border = thin_border
 
-        # Write data
+        # Write data (numbers become real numbers so sums/sorting work)
         for row_idx, row_data in enumerate(rows, 2):
             for col_idx, value in enumerate(row_data, 1):
-                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                cell = ws.cell(row=row_idx, column=col_idx, value=parse_value(value))
+                if isinstance(cell.value, str) and cell.value.startswith("="):
+                    cell.data_type = "s"  # keep as text, not a formula
                 cell.border = thin_border
                 cell.alignment = Alignment(vertical="center")
 
         # Auto column width
         for col in ws.columns:
-            max_length = 0
-            column = col[0].column_letter
-            for cell in col:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            ws.column_dimensions[column].width = min(max_length + 4, 40)
+            max_length = max((len(str(c.value)) for c in col if c.value is not None), default=0)
+            ws.column_dimensions[col[0].column_letter].width = min(max_length + 4, 40)
 
         # Freeze header
         ws.freeze_panes = "A2"
@@ -272,12 +299,11 @@ def excel_generator():
         wb.save(buffer)
         buffer.seek(0)
 
-        filename = f"{title.replace(' ', '_')[:40]}.xlsx"
         return send_file(
             buffer,
             as_attachment=True,
-            download_name=filename,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            download_name=f"{safe_filename(title, 'Sheet')}.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
     return render_template("excel_generator.html")
@@ -291,6 +317,11 @@ def about():
     return render_template("about.html")
 
 
+@app.errorhandler(413)
+def too_large(e):
+    return "File too large. Maximum size is 16 MB.", 413
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
