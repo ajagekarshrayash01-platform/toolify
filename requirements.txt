@@ -1,5 +1,6 @@
-flask==3.0.3
-fpdf2==2.7.9
-openpyxl==3.1.5
-gunicorn==22.0.0
-werkzeug==3.0.3
+flask
+gunicorn
+fpdf2
+openpyxl
+Pillow
+PyMuPDF
