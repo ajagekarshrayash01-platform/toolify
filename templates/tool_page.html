@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="form-section">
+                <h1 class="section-title h2"><i class="bi {{ page.icon }} me-2"></i>{{ page.h1 }}</h1>
+                <p class="text-muted">{{ page.intro }}</p>
+
+                <form method="POST" {% if page.accept %}enctype="multipart/form-data"{% endif %} id="toolForm">
+                    {% if page.accept %}
+                    <div class="mb-3">
+                        <label for="files">{{ page.file_label }}</label>
+                        <input class="form-control" type="file" id="files" name="files"
+                               accept="{{ page.accept }}" {% if page.multiple %}multiple{% endif %} required>
+                        {% if page.file_help %}<div class="form-text">{{ page.file_help }}</div>{% endif %}
+                    </div>
+                    <ul class="list-group mb-3 small" id="fileList"></ul>
+                    {% endif %}
+
+                    {% for o in page.options %}
+                    <div class="mb-3">
+                        <label for="{{ o.name }}">{{ o.label }}</label>
+                        {% if o.type == 'select' %}
+                            <select class="form-select" id="{{ o.name }}" name="{{ o.name }}">
+                                {% for value, text in o.choices %}
+                                <option value="{{ value }}" {% if form.get(o.name, o.default) == value %}selected{% endif %}>{{ text }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elif o.type == 'textarea' %}
+                            <textarea class="form-control" id="{{ o.name }}" name="{{ o.name }}" rows="{{ o.rows or 4 }}"
+                                      placeholder="{{ o.placeholder or '' }}" {% if o.required %}required{% endif %}>{{ form.get(o.name, o.default or '') }}</textarea>
+                        {% elif o.type == 'password' %}
+                            <input class="form-control" type="password" id="{{ o.name }}" name="{{ o.name }}"
