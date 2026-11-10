@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, send_file, flash, redirect, url_for
+from flask import Flask, render_template, request, send_file, flash, redirect, url_for, Response
+from werkzeug.middleware.proxy_fix import ProxyFix
 from fpdf import FPDF
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -8,9 +9,58 @@ import os
 import re
 from datetime import datetime
 
+import extra_tools
+
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # correct https links behind Render
 app.secret_key = os.environ.get("SECRET_KEY", "toolify-secret-key-change-in-production")
 app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25 MB upload limit
+
+
+# -----------------------------
+# TOOL LIST (drives the menu, homepage cards, footer and sitemap)
+# To add a new tool later: add one line here and create its route.
+# -----------------------------
+TOOL_GROUPS = [
+    {"name": "PDF Tools", "icon": "bi-file-earmark-pdf", "tools": [
+        {"endpoint": "image_to_pdf", "title": "Image to PDF", "icon": "bi-images", "color": "warning",
+         "desc": "Combine JPG, PNG or WEBP images into a single PDF."},
+        {"endpoint": "pdf_to_jpg", "title": "PDF to JPG", "icon": "bi-file-earmark-image", "color": "danger",
+         "desc": "Turn every page of a PDF into a JPG image."},
+        {"endpoint": "merge_pdf", "title": "Merge PDF", "icon": "bi-layers", "color": "primary",
+         "desc": "Join several PDF files into one."},
+        {"endpoint": "split_pdf", "title": "Split PDF", "icon": "bi-scissors", "color": "info",
+         "desc": "Extract pages or split a PDF into single pages."},
+        {"endpoint": "compress_pdf", "title": "Compress PDF", "icon": "bi-file-zip", "color": "success",
+         "desc": "Make a PDF smaller for easy upload and sharing."},
+        {"endpoint": "lock_pdf", "title": "Lock PDF", "icon": "bi-lock", "color": "secondary",
+         "desc": "Add a password to protect your PDF."},
+        {"endpoint": "unlock_pdf", "title": "Unlock PDF", "icon": "bi-unlock", "color": "secondary",
+         "desc": "Remove the password from a PDF you know the password of."},
+        {"endpoint": "pdf_generator", "title": "PDF Generator", "icon": "bi-file-earmark-text", "color": "danger",
+         "desc": "Turn any text into a neat PDF for notes, letters and reports."},
+    ]},
+    {"name": "Image Tools", "icon": "bi-image", "tools": [
+        {"endpoint": "image_converter", "title": "Image Converter", "icon": "bi-arrow-left-right", "color": "primary",
+         "desc": "Convert images between JPG, PNG and WEBP."},
+        {"endpoint": "resize_compress_image", "title": "Resize & Compress Image", "icon": "bi-aspect-ratio", "color": "success",
+         "desc": "Reduce image size or make it under a KB limit for forms."},
+    ]},
+    {"name": "Document Tools", "icon": "bi-file-earmark-person", "tools": [
+        {"endpoint": "resume", "title": "Resume Builder", "icon": "bi-file-earmark-person", "color": "primary",
+         "desc": "Fill a simple form and download a clean PDF resume."},
+        {"endpoint": "bill_generator", "title": "Bill / Invoice Generator", "icon": "bi-receipt", "color": "success",
+         "desc": "Create an invoice PDF with items and GST."},
+        {"endpoint": "excel_generator", "title": "Excel Generator", "icon": "bi-file-earmark-spreadsheet", "color": "success",
+         "desc": "Create .xlsx spreadsheets with headers and data."},
+    ]},
+]
+ALL_TOOLS = [t for g in TOOL_GROUPS for t in g["tools"]]
+
+
+@app.context_processor
+def inject_tools():
+    return {"TOOL_GROUPS": TOOL_GROUPS, "ALL_TOOLS": ALL_TOOLS}
 
 
 # -----------------------------
@@ -370,6 +420,30 @@ def image_to_pdf():
         )
 
     return render_template("image_to_pdf.html", max_images=MAX_IMAGES)
+
+
+# -----------------------------
+# EXTRA TOOLS (PDF tools, image tools, bill generator)
+# -----------------------------
+extra_tools.register(app, safe_text, safe_filename)
+
+
+# -----------------------------
+# SEO: robots.txt and sitemap.xml
+# -----------------------------
+@app.route("/robots.txt")
+def robots():
+    body = f"User-agent: *\nAllow: /\nSitemap: {url_for('sitemap', _external=True)}\n"
+    return Response(body, mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    endpoints = ["index"] + [t["endpoint"] for t in ALL_TOOLS] + ["about"]
+    urls = "".join(f"<url><loc>{url_for(e, _external=True)}</loc></url>" for e in endpoints)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + "</urlset>")
+    return Response(xml, mimetype="application/xml")
 
 
 # -----------------------------
