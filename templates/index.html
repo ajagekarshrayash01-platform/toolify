@@ -34,3 +34,46 @@
                 </div>
             </a>
         </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <!-- Coming Soon -->
+    <div class="text-center my-5">
+        <h4 class="fw-bold text-secondary mb-3">Coming Soon</h4>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-file-earmark-word me-1"></i> PDF to Word
+            </span>
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-qr-code me-1"></i> QR Code Generator
+            </span>
+            <span class="badge bg-secondary bg-opacity-25 text-dark px-3 py-2 rounded-pill">
+                <i class="bi bi-droplet me-1"></i> PDF Watermark
+            </span>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <h3 class="text-center fw-bold mb-4 section-title">How it works</h3>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">1</div>
+            <h6 class="fw-bold">Choose a tool</h6>
+            <p class="text-muted small">Pick a tool from the list above.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">2</div>
+            <h6 class="fw-bold">Upload or fill the form</h6>
+            <p class="text-muted small">Choose your files or enter your details. No account needed.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="display-6 text-primary mb-2">3</div>
+            <h6 class="fw-bold">Download instantly</h6>
+            <p class="text-muted small">Get your file right away. We do not store your files.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
