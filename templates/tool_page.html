@@ -34,3 +34,69 @@
                                       placeholder="{{ o.placeholder or '' }}" {% if o.required %}required{% endif %}>{{ form.get(o.name, o.default or '') }}</textarea>
                         {% elif o.type == 'password' %}
                             <input class="form-control" type="password" id="{{ o.name }}" name="{{ o.name }}"
+                                   autocomplete="new-password" {% if o.required %}required{% endif %}>
+                        {% else %}
+                            <input class="form-control" type="{{ o.type }}" id="{{ o.name }}" name="{{ o.name }}"
+                                   value="{{ form.get(o.name, o.default or '') }}" placeholder="{{ o.placeholder or '' }}"
+                                   {% if o.type == 'number' %}min="0" step="any" inputmode="decimal"{% endif %}
+                                   {% if o.required %}required{% endif %}>
+                        {% endif %}
+                        {% if o.help %}<div class="form-text">{{ o.help }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% if page.note %}
+                    <div class="alert alert-secondary small">{{ page.note }}</div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
+                        <i class="bi bi-download me-1"></i> {{ page.button }}
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-4">
+                <h2 class="h5 fw-bold">How to use {{ page.h1 }}</h2>
+                <ol class="text-muted small">
+                    {% for s in page.steps %}<li>{{ s }}</li>{% endfor %}
+                </ol>
+                <h2 class="h5 fw-bold mt-4">FAQ</h2>
+                {% for q, a in page.faqs %}
+                <p class="small mb-1"><strong>{{ q }}</strong></p>
+                <p class="text-muted small">{{ a }}</p>
+                {% endfor %}
+                <p class="text-muted small">Your files are processed in memory and are not stored on our server.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const input = document.getElementById("files");
+    const list = document.getElementById("fileList");
+    if (input) {
+        input.addEventListener("change", () => {
+            list.innerHTML = "";
+            Array.from(input.files).forEach((f, i) => {
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between";
+                li.textContent = (i + 1) + ". " + f.name;
+                const size = document.createElement("span");
+                size.className = "text-muted";
+                size.textContent = (f.size / 1024 / 1024).toFixed(1) + " MB";
+                li.appendChild(size);
+                list.appendChild(li);
+            });
+        });
+    }
+    const form = document.getElementById("toolForm");
+    form.addEventListener("submit", () => {
+        const btn = document.getElementById("submitBtn");
+        const original = btn.innerHTML;
+        btn.innerHTML = "Working... please wait";
+        setTimeout(() => { btn.innerHTML = original; }, 10000);
+    });
+</script>
+{% endblock %}
