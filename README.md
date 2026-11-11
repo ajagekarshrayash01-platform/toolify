@@ -1,108 +1,132 @@
-# Toolify — Free Online Document Tools
+# Toolify
 
-A simple, clean Flask web app with:
+**All-in-one free online tools** for PDFs, images and documents. No signup. Your files are processed in memory and are not stored.
 
-- **Resume Builder** → Professional PDF resume
-- **PDF Generator** → Text to PDF
-- **Excel Generator** → Create styled .xlsx files
+🔗 **Live site:** https://toolify-c6ns.onrender.com
 
-No signup required. Perfect starting point for a free tools website you can monetize later.
+> Note: the site runs on a free server, so the first visit after a quiet period can take 30-60 seconds to load.
 
 ---
 
-## Local Development
+## Tools
 
-```bash
-# 1. Go to project folder
-cd toolify
+### PDF Tools
+| Tool | What it does |
+|---|---|
+| Image to PDF | Combine JPG, PNG or WEBP images into one PDF |
+| PDF to JPG | Convert every PDF page to a JPG (ZIP for many pages) |
+| Merge PDF | Join several PDFs into one |
+| Split PDF | Extract pages, or split every page into its own file |
+| Compress PDF | Reduce PDF file size |
+| Lock PDF | Add a password (AES-256) |
+| Unlock PDF | Remove a password when you know it |
+| PDF Generator | Turn text into a neat PDF |
 
-# 2. Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+### Image Tools
+| Tool | What it does |
+|---|---|
+| Image Converter | Convert between JPG, PNG and WEBP |
+| Resize & Compress Image | Resize, or compress to a target size in KB (useful for exam and job forms) |
 
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Run the app
-python app.py
-```
-
-Open: http://127.0.0.1:5000
-
----
-
-## Deploy to Render (Free)
-
-1. Push this project to a **GitHub** repository.
-2. Go to [https://render.com](https://render.com) → Sign up / Log in.
-3. Click **New +** → **Web Service**.
-4. Connect your GitHub repo.
-5. Settings:
-   - **Name**: `toolify` (or any name)
-   - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-   - **Instance Type**: Free
-6. Click **Create Web Service**.
-
-Render will give you a free URL like `https://toolify-xxxx.onrender.com`.
-
-> Note: Free tier on Render sleeps after 15 min of inactivity. First load after sleep may take 30–50 seconds.
-
-### Optional Environment Variable
-- `SECRET_KEY` → set any random string for production security.
+### Document Tools
+| Tool | What it does |
+|---|---|
+| Resume Builder | Fill a form and download a clean PDF resume |
+| Bill / Invoice Generator | Create an invoice PDF with items and GST |
+| Excel Generator | Create `.xlsx` sheets with headers and data |
 
 ---
 
-## Other Free Hosting Options
+## Tech stack
 
-| Platform     | Notes                              |
-|--------------|------------------------------------|
-| **Render**   | Best free tier for Flask           |
-| **Railway**  | Easy, good free credits            |
-| **PythonAnywhere** | Simple, free limited plan     |
-| **Fly.io**   | Slightly more setup                |
+- **Backend:** Python, Flask
+- **PDF:** PyMuPDF, fpdf2
+- **Images:** Pillow
+- **Excel:** openpyxl
+- **Frontend:** Jinja2 templates, Bootstrap 5, Bootstrap Icons
+- **Server:** Gunicorn on Render (free plan)
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 toolify/
-├── app.py                 # Main Flask application
+├── app.py               # Flask app, tool list, resume/PDF/Excel/image-to-PDF routes, SEO routes
+├── extra_tools.py       # Shared helpers, loads the tool modules below
+├── tool_pages.py        # Text and form fields for each tool page
+├── pdf_tools.py         # Merge, split, compress, lock, unlock, PDF to JPG
+├── image_tools.py       # Image converter, resize and compress
+├── bill_tool.py         # Bill / invoice generator
+├── gunicorn.conf.py     # Gunicorn settings (threads, timeout)
 ├── requirements.txt
-├── README.md
-├── templates/
-│   ├── base.html
-│   ├── index.html
-│   ├── resume.html
-│   ├── pdf_generator.html
-│   ├── excel_generator.html
-│   └── about.html
-└── static/                # (empty for now, ready for custom CSS/JS)
+├── Procfile
+└── templates/
+    ├── base.html        # Layout, navbar, footer
+    ├── index.html       # Homepage
+    ├── tool_page.html   # Shared template for most tools
+    ├── image_to_pdf.html
+    ├── resume.html
+    ├── pdf_generator.html
+    ├── excel_generator.html
+    └── about.html
 ```
 
 ---
 
-## Monetization Ideas (Later)
+## Run locally
 
-1. **Google AdSense** — Add ads in the footer / sidebar after you get traffic.
-2. **Freemium** — Free version has a small footer watermark. Paid version removes it + extra templates.
-3. **Premium Resume Templates** — Charge ₹49–149 for nicer designs.
-4. **Affiliate links** — Promote Canva, Notion, hosting, etc.
+```bash
+git clone https://github.com/<your-username>/toolify.git
+cd toolify
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
 
----
-
-## Next Tools You Can Add
-
-- Invoice / Bill Generator
-- Gas / Utility bill style PDF
-- Image → PDF
-- PDF → Text / basic converter
-- More resume templates
-
-The code is structured so adding new routes and templates is straightforward.
+Open http://localhost:5000
 
 ---
 
-Made with ❤️ for productivity.
+## Deploy on Render
+
+1. Push this repo to GitHub.
+2. On Render, create a **Web Service** and connect the repo.
+3. Use these settings:
+   - **Runtime:** Python 3
+   - **Build command:** `pip install -r requirements.txt`
+   - **Start command:** `gunicorn app:app`
+   - **Instance type:** Free
+4. Optional: set a `SECRET_KEY` environment variable.
+5. Optional: add a free uptime monitor (for example UptimeRobot) on `/health` to keep the site awake.
+
+---
+
+## Add a new tool
+
+1. Add its page text and form fields to `tool_pages.py`.
+2. Write its handler and route in a tool module (see `pdf_tools.py` for an example).
+3. Add one entry to `TOOL_GROUPS` in `app.py`. The menu, homepage cards, footer and sitemap update automatically.
+
+---
+
+## Roadmap
+
+- [ ] PDF to Word
+- [ ] QR Code Generator
+- [ ] PDF Watermark, Rotate and Page Numbers
+- [ ] Support (QR) button, Privacy Policy and Contact pages
+- [ ] User accounts and saved records
+
+---
+
+## Privacy
+
+Uploaded files are processed in memory and sent back to you. They are not saved on the server.
+
+---
+
+## License
+
+PDF features use [PyMuPDF](https://pymupdf.readthedocs.io/), which is licensed under AGPL-3.0. Check its license terms before using or redistributing this project commercially.
