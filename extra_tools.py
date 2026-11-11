@@ -398,3 +398,4 @@ def register(app, safe_text, safe_filename):
             current = current.resize((int(current.width * 0.8), int(current.height * 0.8)), Image.LANCZOS)
         return buf.getvalue()
 
+
